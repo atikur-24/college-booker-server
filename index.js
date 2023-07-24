@@ -73,6 +73,11 @@ async function run() {
       res.send(result);
     });
 
+    app.get("/candidatesInfo", async (req, res) => {
+      const result = await candidateDataCollection.find().toArray();
+      res.send(result);
+    });
+
     app.post("/candidatesInfo", async (req, res) => {
       const data = req.body;
       const result = await candidateDataCollection.insertOne(data);

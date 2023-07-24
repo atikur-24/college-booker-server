@@ -39,9 +39,7 @@ async function run() {
     app.get("/getByName/:text", async (req, res) => {
       const name = req.params.text;
       const result = await collegeCollection
-        .find(
-            { college_name: { $regex: name, $options: "i" } },
-        )
+        .find({ college_name: { $regex: name, $options: "i" } })
         .toArray();
       res.send(result);
     });
@@ -87,6 +85,23 @@ async function run() {
     app.post("/feedback", async (req, res) => {
       const feedback = req.body;
       const result = await feedbackCollection.insertOne(feedback);
+      res.send(result);
+    });
+
+    app.put("/candidatesInfo/:email", async (req, res) => {
+      const email = req.params.email;
+      const updatedData = req.body;
+      const filter = { email: email };
+      const options = { upsert: true };
+      const updateCandidate = {
+        $set: {
+          candidate_name: updatedData.candidate_name,
+          candidate_email: updatedData.candidate_email,
+          college_name: updatedData.college_name,
+          address: updatedData.address,
+        },
+      };
+      const result = await candidateDataCollection.updateOne(filter, updateCandidate, options);
       res.send(result);
     });
 

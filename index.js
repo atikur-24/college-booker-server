@@ -38,8 +38,14 @@ async function run() {
 
     app.get('/colleges/:id', async(req, res) => {
         const id = req.params.id;
-        const query = { id: new ObjectId(id) };
-        const result = await collegeCollection.findOne(query).toArray();
+        const query = { _id: new ObjectId(id) };
+        const result = await collegeCollection.findOne(query);
+        res.send(result);
+    })
+
+    app.post('/candidatesInfo', async(req, res) => {
+        const data = req.body;
+        const result = await candidateDataCollection.insertOne(data);
         res.send(result);
     })
 

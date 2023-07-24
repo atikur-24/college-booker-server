@@ -49,6 +49,15 @@ async function run() {
         res.send(result);
     })
 
+    app.get('/candidatesInfo/:email', async(req, res) => {
+      const email = req.params.email;
+      if(!email) {
+        res.send([])
+      }
+      const query = { email: email };
+      const result = await candidateDataCollection.find(query).toArray();
+      res.send(result);
+    });
 
 
     // Send a ping to confirm a successful connection

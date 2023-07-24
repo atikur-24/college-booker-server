@@ -1,7 +1,7 @@
-const express = require('express');
-const cors = require('cors');
-require('dotenv').config();
-const { MongoClient, ServerApiVersion, ObjectId } = require('mongodb');
+const express = require("express");
+const cors = require("cors");
+require("dotenv").config();
+const { MongoClient, ServerApiVersion, ObjectId } = require("mongodb");
 
 const app = express();
 const port = process.env.PORT || 5000;
@@ -9,7 +9,6 @@ const port = process.env.PORT || 5000;
 // middleware
 app.use(cors());
 app.use(express.json());
-
 
 const uri = `mongodb+srv://${process.env.DB_USER}:${process.env.DB_SECRET}@cluster0.28gkq0d.mongodb.net/?retryWrites=true&w=majority`;
 
@@ -19,7 +18,7 @@ const client = new MongoClient(uri, {
     version: ServerApiVersion.v1,
     strict: true,
     deprecationErrors: true,
-  }
+  },
 });
 
 async function run() {
@@ -27,42 +26,65 @@ async function run() {
     // Connect the client to the server	(optional starting in v4.7)
     await client.connect();
 
-    const database = client.db('collegeBooker');
-    const collegeCollection = database.collection('colleges');
-    const candidateDataCollection = database.collection('candidatesData');
+    const database = client.db("collegeBooker");
+    const collegeCollection = database.collection("colleges");
+    const candidateDataCollection = database.collection("candidatesData");
+    const feedbackCollection = database.collection("feedback");
 
-    app.get('/colleges', async(req, res) => {
-        const result = await collegeCollection.find().toArray();
-        res.send(result)
-    })
+    // Creating index on college name
+    const indexKeys = { name: 1 };
+    const indexOptions = { name: "name" };
+    const result = await collegeCollection.createIndex(indexKeys, indexOptions);
+    console.log(result);
+    app.get("/getByName/:text", async (req, res) => {
+      const name = req.params.text;
+      const result = await collegeCollection
+        .find(
+            { college_name: { $regex: name, $options: "i" } },
+        )
+        .toArray();
+      res.send(result);
+    });
 
-    app.get('/colleges/:id', async(req, res) => {
-        const id = req.params.id;
-        const query = { _id: new ObjectId(id) };
-        const result = await collegeCollection.findOne(query);
-        res.send(result);
-    })
+    app.get("/colleges", async (req, res) => {
+      const result = await collegeCollection.find().toArray();
+      res.send(result);
+    });
 
-    app.post('/candidatesInfo', async(req, res) => {
-        const data = req.body;
-        const result = await candidateDataCollection.insertOne(data);
-        res.send(result);
-    })
+    app.get("/colleges/:id", async (req, res) => {
+      const id = req.params.id;
+      const query = { _id: new ObjectId(id) };
+      const result = await collegeCollection.findOne(query);
+      res.send(result);
+    });
 
-    app.get('/candidatesInfo/:email', async(req, res) => {
+    app.get("/candidatesInfo/:email", async (req, res) => {
       const email = req.params.email;
-      if(!email) {
-        res.send([])
+      if (!email) {
+        res.send([]);
       }
       const query = { email: email };
       const result = await candidateDataCollection.find(query).toArray();
       res.send(result);
     });
 
+    app.post("/candidatesInfo", async (req, res) => {
+      const data = req.body;
+      const result = await candidateDataCollection.insertOne(data);
+      res.send(result);
+    });
+
+    app.post("/feedback", async (req, res) => {
+      const feedback = req.body;
+      const result = await feedbackCollection.insertOne(feedback);
+      res.send(result);
+    });
 
     // Send a ping to confirm a successful connection
     await client.db("admin").command({ ping: 1 });
-    console.log("Pinged your deployment. You successfully connected to MongoDB!");
+    console.log(
+      "Pinged your deployment. You successfully connected to MongoDB!"
+    );
   } finally {
     // Ensures that the client will close when you finish/error
     // await client.close();
@@ -70,12 +92,10 @@ async function run() {
 }
 run().catch(console.dir);
 
-
-
-app.get('/', (req, res) => {
-    res.send('College Booker Server is Running....')
-})
+app.get("/", (req, res) => {
+  res.send("College Booker Server is Running....");
+});
 
 app.listen(port, () => {
-    console.log(`college booker server is running on port ${port}`);
-})
+  console.log(`college booker server is running on port ${port}`);
+});

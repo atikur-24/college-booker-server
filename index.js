@@ -35,13 +35,10 @@ async function run() {
     const indexKeys = { name: 1 };
     const indexOptions = { name: "name" };
     const result = await collegeCollection.createIndex(indexKeys, indexOptions);
-    console.log(result);
     app.get("/getByName/:text", async (req, res) => {
       const name = req.params.text;
-      const result = await collegeCollection
-        .find({ college_name: { $regex: name, $options: "i" } })
-        .toArray();
-      res.send(result);
+      const result = await collegeCollection.find({ college_name: { $regex: name, $options: "i" } }).toArray();
+      res.send(result.slice(0, 3));
     });
 
     app.get("/colleges", async (req, res) => {
